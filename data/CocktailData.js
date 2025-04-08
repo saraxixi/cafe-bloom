@@ -1,0 +1,43 @@
+const CocktailData = [
+  {
+    id: 'T1',
+    name: 'Coffee Martini',
+    description: `A bold fusion of rich espresso and premium vodka, the Coffee Martini offers a silky, energizing kick for your evening indulgence. With a hint of coffee liqueur and a smooth finish, it’s the ultimate drink for coffee lovers who enjoy a twist of elegance.`,
+    roasted: 'Dark Roasted',
+    imagelink_square: require('../assets/cocktail_assets/coffee_martini/square/cocktail_pic_1_square.jpg'),
+    imagelink_portrait: require('../assets/cocktail_assets/coffee_martini/portrait/cocktail_pic_1_portrait.jpg'),
+    ingredients: 'Espresso, Vodka, Coffee Liqueur',
+    special_ingredient: 'Hint of Vanilla',
+    prices: [
+      { size: 'S', price: '5.49', currency: '$' },
+      { size: 'M', price: '7.99', currency: '$' },
+      { size: 'L', price: '9.49', currency: '$' },
+    ],
+    average_rating: 4.8,
+    ratings_count: '8,245',
+    favourite: false,
+    type: 'Cocktail',
+    index: 0,
+  },
+  {
+    id: 'T2',
+    name: 'Latte Marry',
+    description: `A creamy blend of milk-infused espresso and spiced coffee liqueur, Latte Marry is a mellow yet spirited cocktail. Perfect for brunch or a laid-back evening, it charms with its smooth body and cozy aroma.`,
+    roasted: 'Medium Roasted',
+    imagelink_square: require('../assets/cocktail_assets/latte_marry/square/cocktail_pic_2_square.jpg'),
+    imagelink_portrait: require('../assets/cocktail_assets/latte_marry/portrait/cocktail_pic_2_portrait.jpg'),
+    ingredients: 'Espresso, Spiced Liqueur, Steamed Milk',
+    special_ingredient: 'Cinnamon Dust',
+    prices: [
+      { size: 'S', price: '4.99', currency: '$' },
+      { size: 'M', price: '6.89', currency: '$' },
+      { size: 'L', price: '8.25', currency: '$' },
+    ],
+    average_rating: 4.6,
+    ratings_count: '6,413',
+    favourite: false,
+    type: 'Cocktail',
+    index: 1,
+  },
+];
+export default CocktailData;

@@ -6,32 +6,27 @@ import { auth, database } from '../firebase/FirebaseSetup';
 import { getDocs, query, where, collection, onSnapshot } from 'firebase/firestore';
 
 export default function CoffeeDetail({ route, navigation }) {
-  const { coffee } = route.params; // Get the coffee data passed from the previous screen
+  const item = route.params?.coffee || route.params?.cocktail;
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedSize, setSelectedSize] = useState('M');
 
   useEffect(() => {
     const userId = auth.currentUser?.uid;
-  
-    if (!userId) return;
-  
+    if (!userId || !item) return;
+
     const q = query(
       collection(database, 'favorites'),
       where('userId', '==', userId),
-      where('coffeeId', '==', coffee.id)
+      where('coffeeId', '==', item.id)
     );
-  
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        if (!querySnapshot.empty) {
-          setIsFavorite(true);
-        } else {
-          setIsFavorite(false);
-        }
-      });
-    
-      return () => unsubscribe();
-    }, [coffee.id]);
-  
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      setIsFavorite(!querySnapshot.empty);
+    });
+
+    return () => unsubscribe();
+  }, [item?.id]);
+
   const handleFavoritePress = async () => {
     try {
       const userId = auth.currentUser.uid;
@@ -41,43 +36,42 @@ export default function CoffeeDetail({ route, navigation }) {
           query(
             collection(database, 'favorites'),
             where('userId', '==', userId),
-            where('coffeeId', '==', coffee.id)
+            where('coffeeId', '==', item.id)
           )
         );
 
-        if (!querySnapshot.empty) {
-          for (const docSnap of querySnapshot.docs) {
-            await deleteFromDB(docSnap.id, 'favorites');
-          }
+        for (const docSnap of querySnapshot.docs) {
+          await deleteFromDB(docSnap.id, 'favorites');
         }
       } else {
         await writeToDB(
           {
             userId: userId,
-            coffeeId: coffee.id,
-            name: coffee.name,
-            imageUri: coffee.imagelink_portrait,
-            special_ingredient: coffee.special_ingredient,
-            description: coffee.description,
-            type: coffee.type,
-            ingredients: coffee.ingredients,
-            roasted: coffee.roasted
+            coffeeId: item.id,
+            name: item.name,
+            imageUri: item.imagelink_portrait,
+            special_ingredient: item.special_ingredient,
+            description: item.description,
+            type: item.type,
+            ingredients: item.ingredients,
+            roasted: item.roasted
           },
           'favorites'
         );
       }
+
       setIsFavorite(!isFavorite);
     } catch (error) {
       console.log('Error updating favorite:', error);
     }
   };
 
-  function handleAddPress() {
+  const handleAddPress = () => {
     const cartItem = {
       userId: auth.currentUser.uid,
-      id: coffee.id,
-      name: coffee.name,
-      imageUri: coffee.imagelink_square,
+      id: item.id,
+      name: item.name,
+      imageUri: item.imagelink_square,
       price: getPriceBySize(),
       sizes: selectedSize,
       quantity: 1,
@@ -88,33 +82,39 @@ export default function CoffeeDetail({ route, navigation }) {
     } catch (error) {
       console.error('Error adding item to cart:', error);
     }
-  }
+  };
 
   const getPriceBySize = () => {
-    const selectedPrice = coffee.prices.find((price) => price.size === selectedSize);
+    const selectedPrice = item.prices.find((price) => price.size === selectedSize);
     return selectedPrice ? selectedPrice.price : 'N/A';
   };
 
+  // ❗Fallback in case no item is passed
+  if (!item) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ color: 'white', padding: 20 }}>No item data available.</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Coffee image */}
+      {/* Image */}
       <View style={styles.imageContainer}>
-        <Image source={ coffee.imagelink_portrait } style={styles.image} />
-        {/* Overlay with Coffee details */}
+        <Image source={item.imagelink_portrait} style={styles.image} />
         <View style={styles.overlay}>
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>{coffee.name}</Text>
-            <TouchableOpacity
-              style={styles.favoriteButton}
-              onPress={handleFavoritePress}>
+            <Text style={styles.title}>{item.name}</Text>
+            <TouchableOpacity onPress={handleFavoritePress}>
               <AntDesign name="heart" style={[styles.icon, isFavorite && styles.redIcon]} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.subtitle}>{coffee.special_ingredient}</Text>
+          <Text style={styles.subtitle}>{item.special_ingredient}</Text>
           <View style={styles.tagsContainer}>
-            <Text style={[styles.tag]}>{coffee.type}</Text>
-            <Text style={[styles.tag]}>{coffee.ingredients}</Text>
-            <Text style={[styles.tag]}>{coffee.roasted}</Text>
+            <Text style={styles.tag}>{item.type}</Text>
+            <Text style={styles.tag}>{item.ingredients}</Text>
+            <Text style={styles.tag}>{item.roasted}</Text>
           </View>
         </View>
       </View>
@@ -122,7 +122,7 @@ export default function CoffeeDetail({ route, navigation }) {
       {/* Description */}
       <View style={styles.content}>
         <Text style={styles.sectionTitle}>Description</Text>
-        <Text style={styles.description}>{coffee.description}</Text>
+        <Text style={styles.description}>{item.description}</Text>
 
         {/* Size selection */}
         <Text style={styles.sectionTitle}>Size</Text>
@@ -130,17 +130,17 @@ export default function CoffeeDetail({ route, navigation }) {
           {['S', 'M', 'L'].map((size) => (
             <TouchableOpacity
               key={size}
-              style={[styles.sizeButton, size === selectedSize ? styles.sizeActive : null]}
+              style={[styles.sizeButton, size === selectedSize && styles.sizeActive]}
               onPress={() => setSelectedSize(size)}
             >
-              <Text style={[styles.sizeText, size === selectedSize ? styles.sizeTextActive : null]}>
+              <Text style={[styles.sizeText, size === selectedSize && styles.sizeTextActive]}>
                 {size}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Price and Add to Cart */}
+        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.price}>${getPriceBySize()}</Text>
           <TouchableOpacity style={styles.addToCartButton} onPress={handleAddPress}>

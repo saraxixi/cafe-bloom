@@ -21,6 +21,8 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 export default function Profile() {
   const navigation = useNavigation();
   const user = auth.currentUser;
+  const [favoritesCount, setFavoritesCount] = useState(0);
+  const [ordersCount, setOrdersCount] = useState(0);
   const [diaryEntries, setDiaryEntries] = useState([]);
   const [profileImage, setProfileImage] = useState(null);
   const [isTimerPickerVisible, setTimerPickerVisible] = useState(false);
@@ -68,22 +70,44 @@ export default function Profile() {
   // }, []);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
+    if (!user?.uid) return;
+  
+    // 监听 journals
+    const unsubscribeJournals = onSnapshot(
       collection(database, 'journals'),
       (snapshot) => {
-        const entries = snapshot.docs.map((doc) => ({
-          journalId: doc.id,
-          ...doc.data(),
-        })).filter((entry) => entry.userId === user.uid);
+        const entries = snapshot.docs
+          .map((doc) => ({ journalId: doc.id, ...doc.data() }))
+          .filter((entry) => entry.userId === user.uid);
         setDiaryEntries(entries);
       },
-      (error) => {
-        console.error(error);
-      }
-    )
-
-    return () => unsubscribe();
-  }, []);
+      (error) => console.error("Journals Error:", error)
+    );
+  
+    // 监听 favorites
+    const favQuery = query(
+      collection(database, 'favorites'),
+      where('userId', '==', user.uid)
+    );
+    const unsubscribeFavorites = onSnapshot(favQuery, (snapshot) => {
+      setFavoritesCount(snapshot.size);
+    });
+  
+    // 监听 orders
+    const orderQuery = query(
+      collection(database, 'orders'),
+      where('userId', '==', user.uid)
+    );
+    const unsubscribeOrders = onSnapshot(orderQuery, (snapshot) => {
+      setOrdersCount(snapshot.size);
+    });
+  
+    return () => {
+      unsubscribeJournals();
+      unsubscribeFavorites();
+      unsubscribeOrders();
+    };
+  }, [user]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -95,8 +119,8 @@ export default function Profile() {
   );
 
   const userStats = {
-    ordersCount: 12,
-    favoritesCount: 8,
+    ordersCount: ordersCount,
+    favoritesCount: favoritesCount,
     journals: diaryEntries.length,
   };
 

@@ -16,6 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import CoffeeCard from '../components/CoffeeCard'
 import CoffeeData from '../data/CoffeeData'
+import CocktailData from '../data/CocktailData';
 import { auth,  database } from '../firebase/FirebaseSetup'
 import { ref, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase/FirebaseSetup";
@@ -25,9 +26,12 @@ import { writeToDB } from '../firebase/FirebaseHelper';
 
 export default function Home() {
   const navigation = useNavigation();
-  const categories = ['Espresso', 'Americano', 'Black Coffee', 'Cappucchino', 'Latte', 'Macchiato'];
-  const [activeCategory, setActiveCategory] = useState('Espresso');
-  const filteredCoffeeData = CoffeeData.filter((coffee) => coffee.name === activeCategory);
+  const coffeeCategories = ['Espresso', 'Americano', 'Black Coffee', 'Cappucchino', 'Latte', 'Macchiato'];
+  const cocktailCategories = ['Coffee Martini', 'Latte Marry']
+  const [coffeeActiveCategory, setActiveCoffeeCategory] = useState('Espresso');
+  const [cocktailActiveCategory, setActiveCocktailCategory] = useState('Coffee Martini');
+  const filteredCoffeeData = CoffeeData.filter((coffee) => coffee.name === coffeeActiveCategory);
+  const filteredCocktailData = CocktailData.filter((cocktail) => cocktail.name === cocktailActiveCategory);
   const [profileImage, setProfileImage] = useState(null);
   const currentUser = auth.currentUser;
   const [quote, setQuote] = useState(null); 
@@ -109,9 +113,9 @@ export default function Home() {
       </View>
 
       {/* Title */}
-      <Text style={styles.title}>Find the Best Coffee for You</Text>
+      <Text style={styles.title}>Café Bloom Double-life Café</Text>
 
-      {/* Daily Quote Section */}
+      {/* Daily Quote Section
       <View style={styles.quoteContainer}>
         <Text style={styles.quoteTitle}>Daily Quote</Text>
         {quote ? (
@@ -125,19 +129,47 @@ export default function Home() {
         <TouchableOpacity style={styles.quoteButton} onPress={fetchQuote}>
           <Text style={styles.quoteButtonText}>Get Daily Quote</Text>
         </TouchableOpacity>
+      </View> */}
+
+      <View style={styles.quoteContainer}>
+        <Text style={styles.quoteTitle}>Popularity Chart</Text>
+
+        {[
+          { name: "CoffeeLover99", likes: 120 },
+          { name: "LatteMaster", likes: 110 },
+          { name: "BeanQueen", likes: 95 },
+          { name: "BrewBro", likes: 90 },
+          { name: "CaffeineCat", likes: 85 }
+        ].map((user, index) => (
+          <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+            <Text style={styles.quoteText}>
+              {index + 1}. {user.name} – {user.likes}
+            </Text>
+            <FontAwesome name="thumbs-up" size={18} color="#ffd700" style={{ marginLeft: 6 }} />
+          </View>
+        ))}
+
+        <TouchableOpacity style={styles.quoteButton} onPress={() => console.log('Leaderboard refreshed')}>
+          <Text style={styles.quoteButtonText}>Refresh Leaderboard</Text>
+        </TouchableOpacity>
+      </View>
+      
+      {/* Divider Title for Coffee */}
+      <View style={{ marginTop: 5, marginBottom: 8 }}>
+        <Text style={{ fontSize: 30, color: 'white', fontWeight: 'bold' }}>Coffee</Text>
       </View>
 
-      {/* Category Tabs */}
+      {/* Coffee Category Tabs */}
       <View style={styles.tabsContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {categories.map((category, index) => (
+          {coffeeCategories.map((coffeeCategories, index) => (
             <TouchableOpacity
               key={index}
-              style={[styles.tab, activeCategory === category && styles.activeTab]}
-              onPress={() => setActiveCategory(category)}
+              style={[styles.tab, coffeeActiveCategory === coffeeCategories && styles.activeTab]}
+              onPress={() => setActiveCoffeeCategory(coffeeCategories)}
             >
-              <Text style={[styles.tabText, activeCategory === category && styles.activeTabText]}>
-                {category}
+              <Text style={[styles.tabText, coffeeActiveCategory === coffeeCategories && styles.activeTabText]}>
+                {coffeeCategories}
               </Text>
             </TouchableOpacity>
           ))}
@@ -158,6 +190,48 @@ export default function Home() {
                 subtitle={coffee.special_ingredient}
                 price={coffee.prices[1].price}
                 onAddPress={() => handleAddPress(coffee)}
+              />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Divider Title for Cocktail */}
+      <View style={{ marginTop: 15, marginBottom: 8 }}>
+        <Text style={{ fontSize: 30, color: 'white', fontWeight: 'bold' }}>Cocktails</Text>
+      </View>
+
+      {/* Cocktail Category Tabs */}
+      <View style={styles.tabsContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {cocktailCategories.map((cocktailCategories, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[styles.tab, cocktailActiveCategory === cocktailCategories && styles.activeTab]}
+              onPress={() => setActiveCocktailCategory(cocktailCategories)}
+            >
+              <Text style={[styles.tabText, cocktailActiveCategory === cocktailCategories && styles.activeTabText]}>
+                {cocktailCategories}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Cocktail List */}
+      <View>
+        <ScrollView horizontal>
+          {filteredCocktailData.map((cocktail) => (
+            <TouchableOpacity
+              key={cocktail.id}
+              onPress={() => navigation.navigate('CoffeeDetail', {cocktail})}>
+              <CoffeeCard
+                key={cocktail.id}
+                imageUri={cocktail.imagelink_square}
+                title={cocktail.name}
+                subtitle={cocktail.special_ingredient}
+                price={cocktail.prices[1].price}
+                onAddPress={() => handleAddPress(cocktail)}
               />
             </TouchableOpacity>
           ))}
