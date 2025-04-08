@@ -159,7 +159,7 @@ export default function App() {
           name="CoffeeDetail"
           component={CoffeeDetail}
           options={({ route }) => ({
-            title: route.params.coffee.name,
+            title: route.params?.coffee?.name || route.params?.cocktail?.name || 'Coffee',
           })}
         />
       </Stack.Navigator>
