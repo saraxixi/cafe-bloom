@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, Alert, View, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -10,6 +10,7 @@ import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { deleteFromDB } from './firebase/FirebaseHelper';
 import 'react-native-gesture-handler';
 import * as Notifications from 'expo-notifications';
+import { onSnapshot, query, where, collection } from 'firebase/firestore';
 
 import Home from './screens/Home';
 import Cart from './screens/Cart';
@@ -341,6 +342,24 @@ export default function App() {
   }
 
   function MainApp() {
+    const [cartCount, setCartCount] = useState(0);
+    const currentUser = auth.currentUser;
+  
+    useEffect(() => {
+      if (!currentUser?.uid) return;
+  
+      const q = query(
+        collection(database, 'cart'),
+        where('userId', '==', currentUser.uid)
+      );
+  
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        setCartCount(snapshot.size); // 更新购物车数量
+      });
+  
+      return () => unsubscribe();
+    }, [currentUser]);
+
     return (
       <Tab.Navigator screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
@@ -356,7 +375,28 @@ export default function App() {
           } else if (route.name === 'Profile') {
             iconName = 'user';
           }
-          return <AntDesign name={iconName} size={size} color={color} />;
+           return (
+            <View>
+              <AntDesign name={iconName} size={size} color={color} />
+              {route.name === 'Cart' && cartCount > 0 && (
+                <View style={{
+                  position: 'absolute',
+                  right: -6,
+                  top: -3,
+                  backgroundColor: 'red',
+                  borderRadius: 8,
+                  width: 16,
+                  height: 16,
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}>
+                  <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                    {cartCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+          );
         },
         tabBarActiveTintColor: '#4A2B29',
         tabBarInactiveTintColor: 'gray',
