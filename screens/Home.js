@@ -109,9 +109,9 @@ export default function Home() {
       </View>
 
       {/* Title */}
-      <Text style={styles.title}>Find the Best Coffee for You</Text>
+      <Text style={styles.title}>Café Bloom Double-life Café</Text>
 
-      {/* Daily Quote Section */}
+      {/* Daily Quote Section
       <View style={styles.quoteContainer}>
         <Text style={styles.quoteTitle}>Daily Quote</Text>
         {quote ? (
@@ -124,6 +124,29 @@ export default function Home() {
         )}
         <TouchableOpacity style={styles.quoteButton} onPress={fetchQuote}>
           <Text style={styles.quoteButtonText}>Get Daily Quote</Text>
+        </TouchableOpacity>
+      </View> */}
+
+      <View style={styles.quoteContainer}>
+        <Text style={styles.quoteTitle}>Popularity Chart</Text>
+
+        {[
+          { name: "CoffeeLover99", likes: 120 },
+          { name: "LatteMaster", likes: 110 },
+          { name: "BeanQueen", likes: 95 },
+          { name: "BrewBro", likes: 90 },
+          { name: "CaffeineCat", likes: 85 }
+        ].map((user, index) => (
+          <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+            <Text style={styles.quoteText}>
+              {index + 1}. {user.name} – {user.likes}
+            </Text>
+            <FontAwesome name="thumbs-up" size={18} color="#ffd700" style={{ marginLeft: 6 }} />
+          </View>
+        ))}
+
+        <TouchableOpacity style={styles.quoteButton} onPress={() => console.log('Leaderboard refreshed')}>
+          <Text style={styles.quoteButtonText}>Refresh Leaderboard</Text>
         </TouchableOpacity>
       </View>
 
